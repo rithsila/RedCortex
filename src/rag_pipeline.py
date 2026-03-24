@@ -20,6 +20,7 @@ import requests
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 from rank_bm25 import BM25Okapi
+from utils.query_logger import QueryLogger
 
 # Change to project root
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -29,6 +30,9 @@ EMBED_MODEL = "nomic-embed-text"
 COLLECTION_NAME = "books_hot"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
+
+# Initialize query logger
+query_logger = QueryLogger()
 MODEL_DEFAULT = "qwen/qwen3-coder"
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
@@ -348,13 +352,27 @@ def format_context(results: List[SearchResult]) -> Tuple[str, List[str]]:
     return "\n\n".join(contexts), sources
 
 
-def query_llm(question: str, context: str, model: str) -> Tuple[str, str, str]:
-    """Send query to OpenRouter with caching"""
+def query_llm(question: str, context: str, model: str, search_method: str = "unknown", sources_count: int = 0) -> Tuple[str, str, str]:
+    """Send query to OpenRouter with caching and logging"""
     
-    # Check cache first
+    start_time = time.time()
     cache_key = get_cache_key(question, model, 5)
     cached = get_cached_response(cache_key)
+    
     if cached:
+        # Log cached query
+        latency_ms = int((time.time() - start_time) * 1000)
+        query_logger.log_query(
+            query=question,
+            answer=cached["answer"],
+            model_used=model,
+            search_method=search_method,
+            latency_ms=latency_ms,
+            sources_count=sources_count,
+            cache_hit=True,
+            tokens_used=None,
+            cost_usd=0.0  # No cost for cached queries
+        )
         return cached["answer"], cached["cost_info"], cached["model"] + " (cached)"
     
     system_prompt = """You are a helpful technical assistant with access to Red Hat Enterprise Linux documentation.
@@ -403,9 +421,39 @@ Provide a clear, technical answer citing page numbers."""
             "model": model
         })
         
+        # Log successful query
+        latency_ms = int((time.time() - start_time) * 1000)
+        tokens = usage.get('total_tokens') if usage else None
+        # Estimate cost: $0.75 per 1M tokens for qwen/qwen3-coder
+        cost_usd = (tokens * 0.75 / 1000000) if tokens else None
+        
+        query_logger.log_query(
+            query=question,
+            answer=answer,
+            model_used=model,
+            search_method=search_method,
+            latency_ms=latency_ms,
+            sources_count=sources_count,
+            cache_hit=False,
+            tokens_used=tokens,
+            cost_usd=cost_usd
+        )
+        
         return answer, cost_info, model
         
     except Exception as e:
+        # Log error
+        latency_ms = int((time.time() - start_time) * 1000)
+        query_logger.log_query(
+            query=question,
+            answer="",
+            model_used=model,
+            search_method=search_method,
+            latency_ms=latency_ms,
+            sources_count=sources_count,
+            cache_hit=False,
+            error=str(e)
+        )
         return f"Error: {e}", "N/A", model
 
 
@@ -445,7 +493,7 @@ def main():
     print("=" * 60)
     
     start_time = time.time()
-    answer, cost_info, used_model = query_llm(question, context, MODEL_DEFAULT)
+    answer, cost_info, used_model = query_llm(question, context, MODEL_DEFAULT, method, len(sources))
     llm_time = time.time() - start_time
     
     print(f"\n📚 SOURCES:")

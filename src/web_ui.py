@@ -17,7 +17,8 @@ from rag_pipeline import (
     query_llm,
     get_cached_response,
     get_cache_key,
-    MODEL_DEFAULT
+    MODEL_DEFAULT,
+    query_logger
 )
 
 # Page configuration
@@ -86,6 +87,50 @@ def display_chat_history():
                 st.write(f"*Method: {item['method']}*")
 
 
+def display_analytics_dashboard():
+    """Display analytics dashboard"""
+    try:
+        stats = query_logger.get_analytics(days=7)
+        
+        st.markdown("---")
+        st.header("📈 Analytics (Last 7 Days)")
+        
+        # Key metrics
+        cols = st.columns(4)
+        with cols[0]:
+            st.metric("Total Queries", stats['total_queries'])
+        with cols[1]:
+            st.metric("Unique Queries", stats['unique_queries'])
+        with cols[2]:
+            st.metric("Cache Hit Rate", f"{stats['cache_hit_rate']}%")
+        with cols[3]:
+            st.metric("Avg Latency", f"{int(stats['avg_latency_ms'])}ms")
+        
+        # Cost and errors
+        cols2 = st.columns(3)
+        with cols2[0]:
+            st.metric("Total Cost", f"${stats['total_cost_usd']:.4f}")
+        with cols2[1]:
+            st.metric("Error Rate", f"{stats['error_rate']}%")
+        with cols2[2]:
+            st.metric("Errors", stats['error_count'])
+        
+        # Top queries
+        if stats['top_queries']:
+            st.subheader("🔥 Top Queries")
+            for query, count in stats['top_queries'][:5]:
+                st.caption(f"{count}x: {query[:60]}...")
+        
+        # Search method distribution
+        if stats['search_method_distribution']:
+            st.subheader("🔍 Search Methods")
+            for method, count in stats['search_method_distribution'].items():
+                st.caption(f"{method}: {count}")
+                
+    except Exception as e:
+        st.error(f"Could not load analytics: {str(e)}")
+
+
 def main():
     init_session_state()
     
@@ -115,13 +160,16 @@ def main():
         
         # Stats
         st.markdown("---")
-        st.header("📊 Stats")
+        st.header("📊 Session Stats")
         col1, col2 = st.columns(2)
         with col1:
             st.metric("Queries", st.session_state.total_queries)
         with col2:
             cache_rate = (st.session_state.cache_hits / max(st.session_state.total_queries, 1)) * 100
             st.metric("Cache Hit %", f"{cache_rate:.1f}%")
+        
+        # Live analytics from database
+        display_analytics_dashboard()
         
         display_chat_history()
     
@@ -173,7 +221,7 @@ def main():
                 context, sources = format_context(results)
                 
                 if not is_cached:
-                    answer, cost_info, used_model = query_llm(query, context, MODEL_DEFAULT)
+                    answer, cost_info, used_model = query_llm(query, context, MODEL_DEFAULT, method, len(results))
                 else:
                     answer = cached["answer"]
                     cost_info = cached["cost_info"] + " (cached)"

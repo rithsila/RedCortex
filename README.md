@@ -7,8 +7,14 @@
 
 ---
 
-## 🎉 What's New in v2.0
+## 🎉 What's New in v2.1
 
+✅ **FastAPI Backend** - REST API with auto-generated docs  
+✅ **Hierarchical Retrieval** - Book → Section → Chunk multi-level search  
+✅ **Evaluation Framework** - Metrics (Recall@5, MRR, Keyword Match)  
+✅ **Multi-Query Retrieval** - Query variations for better recall  
+
+### v2.0 Features
 ✅ **Semantic Chunking** - 1291 intelligent chunks vs 572 page-level chunks  
 ✅ **Hybrid Search** - BM25 + Vector search with Reciprocal Rank Fusion  
 ✅ **Cross-Encoder Reranking** - `ms-marco-MiniLM-L-6-v2` for better precision  
@@ -31,6 +37,10 @@ RedCortex transforms your technical library into an intelligent, queryable knowl
 - 💰 **Cost-Optimized**: Local embeddings ($0) + pay-per-use LLM (~$0.001/query)
 - 📚 **Resume-Capable Ingestion**: Handles crashes gracefully, resumes from last page
 - 🌐 **Web UI**: Streamlit interface for easy querying
+- 🔌 **FastAPI Backend**: REST API with `/query`, `/health`, `/stats` endpoints
+- 🏗️ **Hierarchical Retrieval**: Multi-level search (book → section → chunk)
+- 📊 **Evaluation Framework**: Automated retrieval quality metrics
+- 🔄 **Multi-Query Retrieval**: Query variations for improved recall
 
 ---
 
@@ -39,18 +49,27 @@ RedCortex transforms your technical library into an intelligent, queryable knowl
 | Component | Status | Details |
 |-----------|--------|---------|
 | **Phase 1: Foundation** | ✅ Complete | Ollama, Qdrant Cloud, SQLite |
-| **Phase 2: Ingestion** | ✅ Complete | Semantic chunking, 1291 chunks indexed |
+| **Phase 2: Ingestion** | ✅ Complete | Semantic chunking, 1840 chunks indexed |
 | **Phase 3: Query** | ✅ Complete | Hybrid search + reranking + caching |
 | **Phase 4: Web UI** | ✅ Complete | Streamlit interface |
-| **Phase 5: Archive** | ⏳ Pending | 7 more books ready |
+| **Phase 5: API Backend** | ✅ Complete | FastAPI with REST endpoints |
+| **Phase 6: Evaluation** | ✅ Complete | Metrics framework + test suite |
+| **Phase 7: Archive** | ⏳ Pending | 7 more books ready |
 
-**Current Stats:**
+### Quick Health Check
+```bash
+python src/utils/health_check.py      # Verify all systems
+python tests/test_queries.py --quick  # Run test suite
+```
+
+**Current Stats (v2.1):**
 - 📖 Books indexed: 1 (Red Hat System Administration I)
-- 🔢 Total chunks: 1,291 (semantic)
-- 🔢 Qdrant vectors: 1,291
-- ⏱️ Avg query time: 2-3 seconds (1s if cached)
+- 🔢 Total chunks: 1,840 (semantic)
+- 🔢 Qdrant vectors: 1,907
+- ⏱️ Avg query time: 2-4 seconds (1s if cached)
 - 💵 Cost per query: ~$0.001 ($0.0005 if cached)
 - 💾 Cache hit rate: 50%+ for repeated queries
+- ✅ All health checks: 9/9 passing
 
 ---
 
@@ -63,7 +82,7 @@ RedCortex transforms your technical library into an intelligent, queryable knowl
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    RedCortex Pipeline v2.0                  │
+│                    RedCortex Pipeline v2.1                  │
 ├─────────────────────────────────────────────────────────────┤
 │  1. HYBRID SEARCH                                           │
 │     • Vector Search (Qdrant) ──┐                            │
@@ -203,6 +222,53 @@ python src/search.py "systemctl commands" --compare
 streamlit run src/web_ui.py
 ```
 
+#### API Backend (NEW in v2.1)
+```bash
+# Start the FastAPI server
+python src/api/main.py
+
+# API will be available at http://localhost:8000
+# Interactive docs: http://localhost:8000/docs
+```
+
+**Example API Query:**
+```bash
+curl -X POST "http://localhost:8000/query" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "How do I create a user in RHEL?",
+    "top_k": 5,
+    "enable_hybrid": true
+  }'
+```
+
+#### Hierarchical Retrieval (NEW in v2.1)
+```bash
+# Multi-level search: book → section → chunk
+python src/hierarchical_retrieval.py "How to configure SSH?"
+```
+
+#### Evaluation Framework (NEW in v2.1)
+```bash
+# Run retrieval quality evaluation
+python src/evaluation/evaluator.py
+
+# Compare hybrid vs vector-only search
+python src/evaluation/evaluator.py --compare
+
+# Include LLM generation evaluation
+python src/evaluation/evaluator.py --generation
+```
+
+#### Multi-Query Retrieval (NEW in v2.1)
+```bash
+# Search with query variations for better recall
+python src/multi_query_retrieval.py "How to create user account?"
+
+# Compare single vs multi-query
+python src/multi_query_retrieval.py "firewall config" --compare
+```
+
 ---
 
 ## 📁 Project Structure
@@ -230,20 +296,30 @@ RedCortex/
 │   ├── setup_macmini.sh    # Mac Mini setup
 │   └── sync_to_macbook.sh  # Data sync utility
 ├── src/
+│   ├── api/                # NEW: FastAPI backend
+│   │   ├── main.py         # REST API server
+│   │   └── __init__.py
+│   ├── evaluation/         # NEW: Evaluation framework
+│   │   └── evaluator.py    # Metrics and testing
 │   ├── ingestion/
 │   │   ├── ingest.py       # Main ingestion (semantic chunking)
 │   │   └── archive/        # Development iterations
-│   ├── rag_pipeline.py     # NEW: Complete RAG pipeline
-│   ├── web_ui.py           # NEW: Streamlit web interface
-│   ├── query.py            # RAG query with hybrid search
-│   ├── search.py           # Search with method comparison
+│   ├── rag_pipeline.py     # Core RAG pipeline
+│   ├── web_ui.py           # Streamlit web interface
+│   ├── query.py            # CLI query tool
+│   ├── search.py           # Search comparison
+│   ├── hierarchical_retrieval.py  # NEW: Multi-level search
+│   ├── multi_query_retrieval.py   # NEW: Query variations
 │   └── utils/
+│       ├── query_logger.py # Query logging & analytics
+│       ├── health_check.py # System health validation
 │       ├── init_db.py      # Initialize SQLite
 │       └── setup_collection.py  # Setup Qdrant
 └── tests/
     ├── query_test.py       # OpenRouter model tests
     ├── test_ingest.py      # Ingestion test
-    └── test_qdrant.py      # Connection test
+    ├── test_qdrant.py      # Connection test
+    └── test_queries.py     # NEW: Test query suite
 ```
 
 ---
@@ -378,7 +454,16 @@ final_top_k: int = 5
 
 ## 📈 Roadmap
 
-### Current (v2.0) ✅
+### Current (v2.1) ✅
+- [x] **FastAPI Backend** - REST API with auto-generated docs
+- [x] **Hierarchical Retrieval** - Book → Section → Chunk search
+- [x] **Evaluation Framework** - Metrics (Recall@5, MRR, etc.)
+- [x] **Multi-Query Retrieval** - Query variations for better recall
+- [x] **Query Logging & Analytics** - SQLite-based with CLI tools
+- [x] **Health Check System** - Comprehensive system validation
+- [x] **Test Query Suite** - 10 RHEL-focused test cases
+
+### v2.0 Features ✅
 - [x] **Semantic Chunking** - 1000 char chunks with 200 overlap
 - [x] **Hybrid Search** - BM25 + Vector with RRF
 - [x] **Cross-Encoder Reranking** - ms-marco-MiniLM-L-6-v2
@@ -387,17 +472,11 @@ final_top_k: int = 5
 - [x] Resume-capable ingestion
 - [x] OpenRouter LLM integration
 
-### Next (v2.1) 📋
-- [ ] Evaluation Framework - Test cases and metrics
-- [ ] Query Logging & Analytics
-- [ ] Hierarchical Retrieval - Book → Section → Chunk
-
 ### Future (v2.2+) 📋
-- [ ] Multi-Query Retrieval - Query variations
 - [ ] Contextual Compression - Reduce token usage
 - [ ] Conversational Memory - Multi-turn sessions
 - [ ] Multi-Book Cross-Referencing
-- [ ] FastAPI Backend
+- [ ] Fine-tuned Embeddings - Book-specific models
 
 See [docs/UPGRADE-ANALYSIS.md](docs/UPGRADE-ANALYSIS.md) for detailed analysis.
 

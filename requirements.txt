@@ -1,0 +1,44 @@
+# Core dependencies for RedCortex
+
+# Vector Database
+qdrant-client>=1.7.0
+
+# Local Embeddings
+ollama>=0.6.0
+
+# LLM API
+requests>=2.31.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# PDF Processing
+pymupdf>=1.23.0
+pypdf>=4.0.0
+
+# LangChain for semantic chunking
+langchain>=0.1.0
+langchain-community>=0.0.10
+langchain-text-splitters>=0.3.0
+
+# Vector Search (for Phase 4 - Archive tier)
+faiss-cpu>=1.7.4
+
+# Hybrid Search - BM25
+rank-bm25>=0.2.2
+
+# Cross-encoder reranking
+sentence-transformers>=2.5.0
+
+# Data Processing
+numpy>=1.24.0
+
+# Web UI
+streamlit>=1.32.0
+
+# Development
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Type Checking (optional)
+# mypy>=1.7.0

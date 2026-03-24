@@ -4,7 +4,7 @@
 
 ---
 
-## 🎉 Current Status: v2.0 RELEASED (March 2026)
+## 🎉 Current Status: v2.1 RELEASED (March 2026)
 
 ### Executive Summary
 
@@ -18,9 +18,10 @@
 - ✅ **Health Check System** - Comprehensive system validation
 - ✅ **Test Query Suite** - 10 RHEL-focused test cases
 - ✅ **Resume-capable ingestion** - Crash recovery built-in
-- ⏳ **Hierarchical Retrieval** - Planned for v2.1
-- ⏳ **FastAPI Backend** - Planned for v2.1
-- ⏳ **Evaluation Framework** - Planned for v2.1
+- ✅ **FastAPI Backend** - REST API with endpoints
+- ✅ **Hierarchical Retrieval** - Multi-level search
+- ✅ **Evaluation Framework** - Retrieval metrics
+- ✅ **Multi-Query Retrieval** - Query variations
 
 **Current Stats (March 2026):**
 - 📖 Books indexed: 1 (Red Hat System Administration I)
@@ -215,41 +216,90 @@ python src/utils/health_check.py
 | Query Logging | High | Low | ⭐⭐ P1 | 4 | ✅ Complete |
 | Health Check | High | Low | ⭐⭐ P1 | 4 | ✅ Complete |
 | Test Suite | High | Low | ⭐⭐ P1 | 4 | ✅ Complete |
-| Hierarchical Retrieval | Medium | High | ⭐⭐ P1 | 1 | ⏳ Planned v2.1 |
-| FastAPI Backend | Medium | Medium | ⭐⭐ P1 | 3 | ⏳ Planned v2.1 |
-| Evaluation Framework | High | Medium | ⭐⭐ P1 | 4 | ⏳ Planned v2.1 |
-| Multi-Query Retrieval | Medium | Low | ⭐⭐ P1 | 2 | ⏳ Planned v2.1 |
+| Hierarchical Retrieval | Medium | High | ⭐⭐ P1 | 1 | ✅ Complete |
+| FastAPI Backend | Medium | Medium | ⭐⭐ P1 | 3 | ✅ Complete |
+| Evaluation Framework | High | Medium | ⭐⭐ P1 | 4 | ✅ Complete |
+| Multi-Query Retrieval | Medium | Low | ⭐⭐ P1 | 2 | ✅ Complete |
 | Contextual Compression | Medium | Medium | ⭐ P2 | 2 | ⏳ Planned v2.2 |
 | Multi-Book Cross-Ref | Medium | High | ⭐ P2 | 5 | ⏳ Planned v2.2 |
 | Conversational Memory | Low | Medium | ⭐ P2 | 5 | ⏳ Planned v2.2 |
 
 ---
 
-## 🚀 v2.1 Roadmap (Next Phase)
+## ✅ v2.1 Completed (March 2026)
+
+### Implemented Features
+
+#### 1. FastAPI Backend ✅
+**Implementation:** `src/api/main.py`
+
+**Endpoints:**
+- `GET /health` - Health check
+- `POST /query` - RAG query execution
+- `GET /books` - List indexed books
+- `GET /stats` - Query statistics
+- `GET /stats/recent` - Recent queries
+
+**Usage:**
+```bash
+python src/api/main.py  # Start server on port 8000
+# API docs: http://localhost:8000/docs
+```
+
+---
+
+#### 2. Hierarchical Retrieval ✅
+**Implementation:** `src/hierarchical_retrieval.py`
+
+**Features:**
+- Multi-level search (book → section → chunk)
+- Context-enhanced retrieval
+- Section-based grouping
+
+**Usage:**
+```bash
+python src/hierarchical_retrieval.py "How to configure SSH?"
+```
+
+---
+
+#### 3. Evaluation Framework ✅
+**Implementation:** `src/evaluation/evaluator.py`
+
+**Metrics:**
+- Recall@5, Recall@10
+- Mean Reciprocal Rank (MRR)
+- Precision@5
+- Keyword match rate
+- Latency tracking
+
+**Usage:**
+```bash
+python src/evaluation/evaluator.py              # Run evaluation
+python src/evaluation/evaluator.py --compare    # Compare hybrid vs vector
+python src/evaluation/evaluator.py --generation # Include LLM evaluation
+```
+
+---
+
+#### 4. Multi-Query Retrieval ✅
+**Implementation:** `src/multi_query_retrieval.py`
+
+**Features:**
+- Query variation generation
+- Synonym expansion
+- Cross-query result fusion
+
+**Usage:**
+```bash
+python src/multi_query_retrieval.py "How to create user?"
+```
+
+---
+
+## 🚀 v2.2 Roadmap (Next Phase)
 
 ### Planned Features
-
-#### 1. FastAPI Backend
-- REST API endpoints for queries
-- Authentication with API keys
-- Rate limiting
-- Async query processing
-
-#### 2. Hierarchical Retrieval
-- Multi-level search (book → section → chunk)
-- Parent-child relationships in SQLite
-- Contextual retrieval with section headers
-
-#### 3. Evaluation Framework
-- Retrieval metrics (recall@5, recall@10, MRR, NDCG)
-- LLM-as-judge for answer quality
-- Automated test runs
-- Performance regression tracking
-
-#### 4. Multi-Query Retrieval
-- Query variation generation
-- Parallel search with variations
-- Result deduplication
 
 ---
 

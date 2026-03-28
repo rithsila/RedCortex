@@ -10,7 +10,7 @@ from qdrant_client.models import PointStruct
 
 load_dotenv()
 
-pdf_path = "Redhat E-Books/System Administration l-9.0-student-guide.pdf"
+pdf_path = "Redhat E-Books/Enterprise Linux Automation with Ansible9.0.pdf"
 
 # Extract first 5 pages
 print("Extracting first 5 pages...")

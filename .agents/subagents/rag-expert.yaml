@@ -1,0 +1,13 @@
+version: 1
+agent:
+  name: rag-expert
+  description: RAG pipeline and vector search specialist
+  extend: default
+  system_prompt_path: ./rag-expert-prompt.md
+  tools:
+    - "kimi_cli.tools.file:ReadFile"
+    - "kimi_cli.tools.file:Grep"
+    - "kimi_cli.tools.file:Glob"
+    - "kimi_cli.tools.shell:Shell"
+    - "kimi_cli.tools.web:SearchWeb"
+    - "kimi_cli.tools.web:FetchURL"

@@ -6,7 +6,7 @@ set -e  # Exit on error
 
 # Configuration
 PROJECT_DIR="${PROJECT_DIR:-$HOME/Projects/RedCortex}"
-BOOKS_DIR="$PROJECT_DIR/Redhat E-Books"
+BOOKS_DIR="$PROJECT_DIR/ML-Books"
 LOG_DIR="$PROJECT_DIR/logs"
 VENV_DIR="$PROJECT_DIR/secondbrain"
 
@@ -105,16 +105,30 @@ if [ "$PDF_COUNT" -eq 0 ]; then
 fi
 
 # Define books to process (filename:title:category)
-# Add your books here
+# ML Books Collection
 declare -a BOOKS=(
-    "System Administration l-9.0-student-guide.pdf:Red Hat System Administration I:red_hat"
-    "Enterprise Linux Automation with Ansible9.0.pdf:Enterprise Linux Automation:red_hat"
-    "OpenShift Administration I Operating a Production Cluster-4.14.pdf:OpenShift Administration I:red_hat"
-    "OpenShift Administration II Operating a Production Kubernetes Cluster4.12.pdf:OpenShift Administration II:red_hat"
-    "OpenShift Administration III Scaling Kubernetes Deployments in the Enterprise4.10.pdf:OpenShift Administration III:red_hat"
-    "Network Automation with Red Hat Ansible Automation Platform2.3.pdf:Network Automation:red_hat"
-    "Enterprise Kubernetes Storage with Red Hat OpenShift Data Foundation4.7.pdf:Kubernetes Storage:red_hat"
-    "Microsoft Windows Automation with Red Hat Ansible 2.8.pdf:Windows Automation:red_hat"
+    "0812_Machine-Learning-for-Absolute-Beginners.pdf:Machine Learning for Absolute Beginners:ai_engineering"
+    "AI Engineering.pdf:AI Engineering:ai_engineering"
+    "Applied-Machine-Learning-and-AI-for-Engineers.pdf:Applied Machine Learning and AI for Engineers:ai_engineering"
+    "Artificial Intelligence. A modern approach (Stuart Russell  Peter Norvig) (Z-Library).pdf:Artificial Intelligence A Modern Approach:ai_engineering"
+    "Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf:Pattern Recognition and Machine Learning:ai_engineering"
+    "Deep Learning by Ian Goodfellow, Yoshua Bengio, Aaron Courville.pdf:Deep Learning:ai_engineering"
+    "Designing Machine Learning Systems An Iterative Process.pdf:Designing Machine Learning Systems:ai_engineering"
+    "Gans-in-action-deep-learning-with-generative-adversarial-networks.pdf:GANs in Action:ai_engineering"
+    "Generative-Deep-Learning.pdf:Generative Deep Learning:ai_engineering"
+    "Hands-On Generative AI with Transformers and Diffusion Models (Omar Sanseviero, Pedro Cuenca etc.) (Z-Library).pdf:Hands-On Generative AI with Transformers:ai_engineering"
+    "Hands-On Large Language Models Language Understanding and Generation (Jay Alammar, Maarten Grootendorst) (Z-Library).pdf:Hands-On Large Language Models:ai_engineering"
+    "Hands-On Machine Learning with Pytorch.pdf:Hands-On Machine Learning with PyTorch:ai_engineering"
+    "Hands-On Machine Learning with Scikit-Learn and PyTorch (Second Early Release) (Aurelien Geron) (Z-Library).pdf:Hands-On ML with Scikit-Learn and PyTorch:ai_engineering"
+    "Hands-On_Machine_Learning_with_Scikit-Learn_Keras_and_Tensorflow_-_Aurelien_Geron.pdf:Hands-On ML with Scikit-Learn Keras and TensorFlow:ai_engineering"
+    "LLM Engineers Handbook.pdf:LLM Engineers Handbook:ai_engineering"
+    "ML Machine Learning-A Probabilistic Perspective.pdf:Machine Learning A Probabilistic Perspective:ai_engineering"
+    "ML Math.pdf:Mathematics for Machine Learning:ai_engineering"
+    "NLP with Transformer models.pdf:NLP with Transformer Models:ai_engineering"
+    "Practical MLOps_ Operationalizing Machine Learning Models.pdf:Practical MLOps:ai_engineering"
+    "Probabilistic Machine Learning Advanced Topics... (Z-Library).pdf:Probabilistic Machine Learning Advanced Topics:ai_engineering"
+    "building-machine-learning-powered-applications-going-from-idea-to-product.pdf:Building ML Powered Applications:ai_engineering"
+    "machine_learning.pdf:Machine Learning:ai_engineering"
 )
 
 # Statistics
@@ -158,9 +172,9 @@ for book_info in "${BOOKS[@]}"; do
     log_info "Progress: $COMPLETED/$TOTAL_BOOKS completed"
     log_info "========================================"
     
-    # Run ingestion with 4-hour timeout
-    # The ingest.py script is resume-capable, so timeouts are safe
-    if timeout 14400 python "$PROJECT_DIR/src/ingestion/ingest.py" \
+    # Run ingestion (ingest.py is resume-capable)
+    log_info "Starting ingestion (this may take 2-4 hours per book)..."
+    if python "$PROJECT_DIR/src/ingestion/ingest.py" \
         "$PDF_PATH" \
         "$title" \
         "$category"; then
@@ -169,12 +183,8 @@ for book_info in "${BOOKS[@]}"; do
         ((COMPLETED++))
     else
         EXIT_CODE=$?
-        if [ $EXIT_CODE -eq 124 ]; then
-            log_warn "Timeout (4 hours): $title - will resume on next run"
-        else
-            log_error "Failed with exit code $EXIT_CODE: $title"
-            ((FAILED++))
-        fi
+        log_error "Failed with exit code $EXIT_CODE: $title"
+        ((FAILED++))
     fi
     
     # Show current stats

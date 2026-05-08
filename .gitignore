@@ -152,8 +152,9 @@ cython_debug/
 *.index
 *.faiss
 
-# SQLite database (optional - uncomment if you want to ignore)
-# data/library.db
+# SQLite database and cache files
+data/library.db
+data/cache/
 
 # Logs
 logs/
